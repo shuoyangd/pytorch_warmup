@@ -38,7 +38,7 @@ class BaseWarmup(object):
         self.__dict__.update(state_dict)
 
     def dampen(self, step=None):
-        """Dampen the learning rates.
+        """Dampen the learning rates. Return average dampening factor for logging.
 
         Arguments:
             step (int): The index of current step. (Default: None)
@@ -47,9 +47,13 @@ class BaseWarmup(object):
             step = self.last_step + 1
         self.last_step = step
 
+        omegas = []
         for group, params in zip(self.optimizer.param_groups, self.warmup_params):
             omega = self.warmup_factor(step, **params)
+            omegas.append(omega)
             group['lr'] *= omega
+
+        return sum(omegas) / len(omegas)
 
     def warmup_factor(self, step, **params):
         raise NotImplementedError
